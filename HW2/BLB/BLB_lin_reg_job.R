@@ -1,5 +1,5 @@
 
-mini <- TRUE
+mini <- FALSE
 
 #============================== Setup for running on Gauss... ==============================#
 
@@ -37,8 +37,8 @@ if (length(args)==0) {
   s_index <- 0
 } else {
   job_num <- as.numeric(args[1])
-  r_index <- job_num %% r
-  s_index <- job_num %/% r
+  r_index <- (job_num-1) %% r + 1
+  s_index <- (job_num-1) %/% r + 1
 }
 
 set.seed(121231+s_index)
@@ -52,15 +52,17 @@ library(bigmemory)
 library(biganalytics)
 
 # I/O specifications:
-# datapath <- "/home/pdbaines/data"
-datapath <- "data/"
+datapath <- "/home/pdbaines/data/"
+# datapath <- "data/"
 outpath <- "output/"
 
 # mini or full?
 if (mini){
 	rootfilename <- "blb_lin_reg_mini"
+	outpath <- "output_mini/"
 } else {
 	rootfilename <- "blb_lin_reg_data"
+	outpath <- "output/"
 }
 
 # Filenames:
@@ -95,9 +97,9 @@ x <- extracted.data[,1:p]
 fit <- lm(y~x,weights=weights)
 
 # Output file:
-outfile <- paste0("output/","coef_",sprintf("%02d",s_index),"_",sprintf("%02d",r_index),".txt")
+outfile <- paste0(outpath,"coef_",sprintf("%02d",s_index),"_",sprintf("%02d",r_index),".txt")
 
 # Save estimates to file:
-write(fit$coeff,outfile,ncolumns=41)
+write(fit$coeff,outfile,1)
 
 
