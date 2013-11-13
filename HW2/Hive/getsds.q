@@ -1,0 +1,1 @@
+SELECT mygroup, stddev_samp(myval) FROM mytable GROUP BY mygroup;

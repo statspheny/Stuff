@@ -1,0 +1,13 @@
+DROP TABLE mytable;
+
+CREATE TABLE mytable(mygroup INT,
+		     myval DOUBLE
+		     )
+  ROW FORMAT DELIMITED
+  FIELDS TERMINATED BY '\t'
+  STORED AS TEXTFILE;
+
+LOAD DATA INPATH 'data/groups.txt'
+OVERWRITE INTO TABLE mytable;
+
+SELECT COUNT(*) FROM mytable;

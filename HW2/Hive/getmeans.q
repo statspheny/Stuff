@@ -1,0 +1,1 @@
+SELECT mygroup, avg(myval) from mytable group by mygroup;
