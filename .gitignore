@@ -48,3 +48,5 @@ out_*
 *.vrb
 *.xdy
 *.tdo
+*.o
+*.so
