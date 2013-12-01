@@ -102,11 +102,29 @@ newtonraphson <- function(fun1,funderiv,start,tol,maxiter,debug) {
 }
 
 
-
+## Derivative of Likelihood function.  Find the root of this.
 likelihoodderiv = function(x) {
   (2+x)^124*(x-1)^37*x^33*(197*x^2-15*x-68)
 }
 
+## Second derivative of Likelihood function.  Use for Newton Raphson
 likelihooddoublederiv = function(x) {
   (2+x)^123*(x-1)^36*x^32*(19306*x^4-2940*x^3-13371*x^2+1088*x+2244)
 }  
+
+## Use Bisection over set of intervals
+## a. less than -2
+## b. between -2 and 0
+## c. between 0 and 1
+## d. greater than 1
+delta = 0.1
+bisection(likelihoodderiv,c(-100,-2-delta),1e-6,100,debug=TRUE)
+bisection(likelihoodderiv,c(-2+delta,0-delta),1e-6,100,debug=TRUE)
+bisection(likelihoodderiv,c(0+delta,1-delta),1e-6,100,debug=TRUE)
+bisection(likelihoodderiv,c(1+delta,100),1e-6,100,debug=TRUE)
+
+## Use NewtonRaphson for various startpoints
+newtonraphson(likelihoodderiv,likelihooddoublederiv,-10,1e-6,1000,debug=TRUE)
+newtonraphson(likelihoodderiv,likelihooddoublederiv,-0.5,1e-6,1000,debug=TRUE)
+newtonraphson(likelihoodderiv,likelihooddoublederiv,0.5,1e-6,1000,debug=TRUE)
+newtonraphson(likelihoodderiv,likelihooddoublederiv,10,1e-6,1000,debug=TRUE)
