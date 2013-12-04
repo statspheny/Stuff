@@ -55,7 +55,7 @@ rtruncnorm_kernel(float *vals, int n,
 
 	// Sample N(mu, sigma^2):
 	// x[idx] = mu[idx] + sigma[idx]*curand_normal(&rng);
-	x[idx] = curand_normal(&rng);
+	vals[idx] = curand_normal(&rng);
 
 	// To get the random uniform curand_uniform(&rng)
 

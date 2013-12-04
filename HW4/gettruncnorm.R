@@ -21,9 +21,9 @@ sigma_len = length(sigma)
 lo_len = length(lo)
 hi_len = length(hi)
 maxtries = 50
-rng_a = 12042013    //RNG seed constant
-rng_b = 13053024    //RNG seed constant
-rng_c = 21031092    //RNG seed constant
+rng_a = 12042013    # RNG seed constant
+rng_b = 13053024    # RNG seed constant
+rng_c = 21031092    # RNG seed constant
 
 cx = copyToDevice
 .cuda(k, cx, n, mu, sigma, lo, hi, mu_len, sigma_len, lo_len, hi_len, maxtries, rng_a, rng_b, rng_c,
