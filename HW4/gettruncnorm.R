@@ -6,28 +6,28 @@ library(RCUDA)
 m = loadModule("rtruncnorm.ptx")
 k = m$rtruncnorm_kernel
 
-N = 1e6L
+N = 200L
 x = rnorm(N)
 mu = 0
 sigma = 1
 
 n = N
 mu = 0
-sigma = 0 
+sigma = 1
 lo = -1
 hi = 1
-mu_len = length(mu)
-sigma_len = length(sigma)
-lo_len = length(lo)
-hi_len = length(hi)
+mu_len = N
+sigma_len = N
+lo_len = N
+hi_len = N
 maxtries = 50
-rng_a = 12042013    //RNG seed constant
-rng_b = 13053024    //RNG seed constant
-rng_c = 21031092    //RNG seed constant
+rng_a = 1204    # RNG seed constant
+rng_b = 1305    # RNG seed constant
+rng_c = 2103    # RNG seed constant
 
-cx = copyToDevice
-.cuda(k, cx, n, mu, sigma, lo, hi, mu_len, sigma_len, lo_len, hi_len, maxtries, rng_a, rng_b, rng_c,
-      gridDim = c(64L,32L), blockDim = 512L)
+cx = copyToDevice(x)
+.cuda(k, cx, N, mu, sigma, lo, hi, mu_len, sigma_len, lo_len, hi_len, maxtries, rng_a, rng_b, rng_c,
+      gridDim = c(20L,2L), blockDim = 64L)
 i = cx[]
 
 head(i)
