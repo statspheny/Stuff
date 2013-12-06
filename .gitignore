@@ -50,3 +50,4 @@ out_*
 *.tdo
 *.o
 *.so
+*.ptx
