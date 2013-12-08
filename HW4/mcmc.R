@@ -39,21 +39,7 @@ probit_mcmc_cpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
         ## update beta
         betamean = xinv %*% zi
         betasd   = diag(1,length(betamean))
-        betastar = rmvnorm(1,betamean,betasd)
-
-        ## get alpha
-        logpstar = -t(zi - X%*%t(betastar)) %*% (zi-X%*%t(betastar))/2 -(betastar-beta_0)%*%Sigma_0_inv%*%t(betastar-beta_0)/2
-        logpt    = -t(zi - X%*%t(betat)) %*% (zi - X%*%t(betat)) /2 - (betat-beta_0) %*% Sigma_0_inv %*% t(betat-beta_0)/2
-        alpha = exp(logpstar-logpt)
-
-        ## update betat
-        if (alpha>0) {
-            betat = betastar
-        } else {
-            u = runif(1)
-            if (u < alpha)
-                betat = betastar
-        }
+        betat = rmvnorm(1,betamean,betasd)
 
         if(idx %% 200 == 0) {
             print(paste("at iteration",idx,"..."))
