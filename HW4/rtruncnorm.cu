@@ -37,47 +37,92 @@ rtruncnorm_kernel(float *vals, int n,
 
     if(idx < n) {
 
-      // initialize
-      int counter = 0;
-      int keeptrying = 1;
-      float newnum = 0;
-      vals[idx] = CUDART_NAN_F;
+      // initialize variables
+      int counter = 0;     // counter for number of tries
+      int keeptrying = 1;  // flag for when to stop the loop
+      int useRobert = 0;   // flag to use Robert algorithm
+      float newnum;    // initialize the number to be generated
+      vals[idx] = CUDART_NAN_F;  // vals initializes to NaN
 
-      while ((counter < maxtries) && (keeptrying)) {
-
-	counter = counter+1;
-    	// Initialize RNG
-    	curandState rng;
-    	curand_init(rng_a*idx+rng_b+counter,rng_c,0,&rng);
-
-    	// Sample the truncated normal
-    	// mu for this index is mu[idx]
-    	// sigma for this index is sigma[idx]
-    	// a for this index is a[idx]
-    	// b for this index is b[idx]
-
-    	// X_i ~ Truncated-Normal(mu_i,sigma_i;[a_i,b_i])
-
-    	// Sample N(mu, sigma^2):
-    	newnum = mu[idx] + sigma[idx]*curand_normal(&rng);
-
-	// if random number is within truncated space, do not reject, stop the loop
-	if ((newnum > lo[idx]) && (newnum < hi[idx]) ) {
-	  keeptrying = 0;
-	  vals[idx] = newnum;
-	}  //end if
-
-	//  if (counter < maxtries) {
-	//     keeptrying = 0;
-	//  }
-      }	  // end while loop
-
-      // if reached maxtries without getting a value, then use Robert algorithm
-      counter = 0;
-      while((counter < maxtries) && keeptrying) {
+      // Initialize random number generator
+      curandState rng;
+      curand_init(rng_a*idx+rng_b,rng_c,0,&rng);
 
 
-      }  // end while loop for Robert algorithm
+      // Determine whether to use Robert algorithm.
+      // It will use the Robert's algorithm if the truncation limits are on the same side.
+      float std_lo = (lo[idx] - mu[idx])/sigma[idx];
+      float std_hi = (hi[idx] - mu[idx])/sigma[idx];
+      if (std_lo * std_hi > 0) {
+	useRobert = 1;
+      }
+
+
+      // sampling by truncating random normal
+      if (!useRobert) {
+	while ((counter < maxtries) && (keeptrying)) {
+	  
+	  counter = counter+1;
+
+	  // Sample N(mu, sigma^2):
+	  newnum = mu[idx] + sigma[idx]*curand_normal(&rng);
+
+	  // if random number is within truncated space, do not reject, stop the loop
+	  if ((newnum > lo[idx]) && (newnum < hi[idx]) ) {
+	    keeptrying = 0;
+	    vals[idx] = newnum;
+	  }  //end if.  Else, try to generate another number
+
+	}	  // end while loop
+      }  // end truncating random normal algorithm
+
+
+      // sampling using Robert algorithm
+      if (useRobert) {
+
+	float mu_minus;  // truncation side
+	float alpha;     //
+	float hitruncate;
+	float tmpunif;
+	float z;
+	float psi;
+
+	int negative = 0;   // flag for whether truncating positive or negative side of normal
+	// we already know that std_lo and std_hi have the same sign
+	if (std_lo < 0 ) {  
+	  negative = 1;
+	  mu_minus   = -std_hi/;
+	  hitruncate = -std_lo;
+	} else {
+	  mu_minus   = std_lo;
+	  hitruncate = std_hi;
+	}
+
+	alpha = (mu_minus + __sqrtf(mu_minus^2+4))/2;
+	
+	while((counter < maxtries) && keeptrying) {
+	  counter = counter + 1;
+
+	  // z = mu_minus + Exp(alpha)
+	  tmpunif = curand_uniform(&rng);
+	  z = mu_minus - __logf(tmpunif)/alpha;
+
+	  // get psi
+	  if (mu_minus < alpha) {
+	    psi = __expf(-(alpha-z)^2/2);
+	  } else {
+	    psi = __expf(-(alpha-z)^2-(mu_minus-alpha)^2/2);
+	  }
+
+	  // accept if U < psi
+	  tmpunif = curand_uniform(&rng);
+	  if (tmpunif < psi) {
+	    vals[idx] = z;
+	    keeptrying = 0;
+	  }
+
+	}  // end while loop
+      } // end if using Robert algorithm
 
       // debugging purposes
       // vals[idx] = (float) counter;
@@ -96,3 +141,11 @@ rtruncnorm_kernel(float *vals, int n,
   // Setup the RNG:
   // Sample:
   
+    	// Sample the truncated normal
+    	// mu for this index is mu[idx]
+    	// sigma for this index is sigma[idx]
+    	// a for this index is a[idx]
+    	// b for this index is b[idx]
+
+    	// X_i ~ Truncated-Normal(mu_i,sigma_i;[a_i,b_i])
+
