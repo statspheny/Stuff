@@ -17,7 +17,8 @@ probit_mcmc_cpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
     betat = t(as.matrix(beta_0))
 
     p = length(betat)
-    allbetas = matrix(0,niter,p)
+    allbetas = matrix(0,niter+burnin,p)
+    allalphas = numeric(niter+burnin)
     X = as.matrix(X)
     
     N = length(y)
@@ -29,7 +30,7 @@ probit_mcmc_cpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
     xinv = ginv(X)
 
     ## iterate niter times
-    for(idx in 1:niter) {
+    for(idx in 1:(niter+burnin)) {
         
         ## get z_i
         xTb = X %*% t(betat)
@@ -46,27 +47,30 @@ probit_mcmc_cpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
         alpha = exp(logpstar-logpt)
 
         ## update betat
-        if (alpha>0)
+        if (alpha>0) {
             betat = betastar
-        else {
+        } else {
             u = runif(1)
             if (u < alpha)
                 betat = betastar
         }
 
-        if(idx %% 1000 == 0) {
+        if(idx %% 200 == 0) {
             print(paste("at iteration",idx,"..."))
-        }
+		}
 
         allbetas[idx,] = betat
+	allalphas[idx] = alpha
     }
-
-    return(allbetas)
+    
+    # remove the burnin
+    allbetas = allbetas[(burnin+1):(burnin+niter),]
+    return(list(allbetas,allalphas))
     
 }
 
 
-data = read.table("mini_data.txt",header=TRUE)
+data = read.table("data_01.txt",header=TRUE)
 p = ncol(data)-1
 y = data$y
 
@@ -74,4 +78,4 @@ X = data[,2:(p+1)]
 beta_0 = rep(0,p)
 Sigma_0_inv = matrix(0,p,p)
 
-ans = probit_mcmc_cpu(y,X,beta_0,Sigma_0_inv,1000,10)
+ans = probit_mcmc_cpu(y,X,beta_0,Sigma_0_inv,2000,500)
