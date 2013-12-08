@@ -67,13 +67,20 @@ rtruncnorm_kernel(float *vals, int n,
 	  vals[idx] = newnum;
 	}  //end if
 
-	if (counter < maxtries) {
-	  keeptrying = 0;
-	}
-      }  // end while loop
+	//  if (counter < maxtries) {
+	//     keeptrying = 0;
+	//  }
+      }	  // end while loop
+
+      // if reached maxtries without getting a value, then use Robert algorithm
+      counter = 0;
+      while((counter < maxtries) && keeptrying) {
+
+
+      }  // end while loop for Robert algorithm
 
       // debugging purposes
-      vals[idx] = (float) counter;
+      // vals[idx] = (float) counter;
       // vals[idx] = newnum;
 
     } // end if(idx<n)
