@@ -2,15 +2,15 @@ library(truncnorm)
 
 source("utility.R")
 
-DOGPU = FALSE  # flag for whether to run on personal computer or on AWS
+DOGPU = TRUE  # flag for whether to run on personal computer or on AWS
 if(DOGPU) {
   library(RCUDA)
   m = loadModule("rtruncnorm.ptx")
-  k = m$rtruncnorm_kernel
+  kernel = m$rtruncnorm_kernel
 }
   
 ## set up constants
-maxtries = 100
+maxtries = 100L
 nullnum = -1    # This is the return value when we run out of maxtries
 rng_a = 12042013    # RNG seed constant
 rng_b = 13053024    # RNG seed constant
@@ -31,7 +31,7 @@ if(DOGPU) {
   x = rnorm(N)
   gputime = system.time({
     cx = copyToDevice(x)
-    .cuda(k, cx, N, mu, sigma, lo, hi, mu_len, sigma_len, lo_len, hi_len, maxtries, nullnum, rng_a, rng_b, rng_c,
+    .cuda(kernel, cx, N, mu, sigma, lo, hi, mu_len, sigma_len, lo_len, hi_len, maxtries, nullnum, rng_a, rng_b, rng_c,
           gridDim = c(3907L,1L), blockDim = c(16L,16L))
     gpu1 = cx[]
   })
@@ -54,12 +54,12 @@ get_cpu_time = function(n,mu0,sigma0,lo0,hi0) {
 if(DOGPU) {
   get_gpu_time = function(n,mu0,sigma0,lo0,hi0) {
     x = rnorm(n)
-    gridblockdims = compute_grid(n)
+    gridblockdims = compute_grid(n,grid_nd=2)
     gputimecopy1 = system.time({
       cx = copyToDevice(x)
     })
     gputimekernel = system.time({
-      .cuda(k, cx, n, mu0, sigma0, lo0, hi0, n, n, n, n, maxtries, nullnum, rng_a, rng_b, rng_c,
+      .cuda(kernel, cx, n, mu0, sigma0, lo0, hi0, n, n, n, n, maxtries, nullnum, rng_a, rng_b, rng_c,
             gridDim = gridblockdims[[1]], blockDim = gridblockdims[[2]])
     })
     gputimecopy2 = system.time({
@@ -69,6 +69,7 @@ if(DOGPU) {
     return(gputime)
   }
 }
+
 
 ## Time GPU vs CPU time for truncated normal, for N = 10^k where k is 1:8
 cputimes = list()
@@ -80,7 +81,7 @@ singlelo = 0
 singlehi = 1.5
 
 for (k in 1:maxk) {
-  n = 10^k
+  n = as.integer(10^k)
   muall = rep(singlemu,n)
   sigmaall = rep(singlesigma,n)
   loall = rep(singlelo,n)

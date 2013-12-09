@@ -8,7 +8,7 @@ kernel = m$rtruncnorm_kernel
 source("utility.R")
 
 
-probit_mcmc_cpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
+probit_mcmc_gpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
 
     ## Define posterior beta
     posterior_beta = numeric(niter)
@@ -40,11 +40,11 @@ probit_mcmc_cpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
     ## iterate niter times
     for(idx in 1:(niter+burnin)) {
         
-      ## get z_i
-      xTb = X %*% t(betat)
-      ## zi = rtruncnorm(N,lo,hi,mean=xTb,sd=1)
-      cx = copyToDevice(zi)
-      .cuda(kernel, cx, N, xTb, sigma, lo, hi, N, N, N, N, maxtries, nullnum, rng_a, rng_b, rng_c,
+        ## get z_i
+        xTb = X %*% t(betat)
+        ## zi = rtruncnorm(N,lo,hi,mean=xTb,sd=1)
+        cx = copyToDevice(zi)
+        .cuda(kernel, cx, N, xTb, sigma, lo, hi, N, N, N, N, maxtries, nullnum, rng_a, rng_b, rng_c,
             gridDim = gridblockdims[[1]], blockDim = gridblockdims[[2]])
 
         ## update beta
@@ -52,22 +52,21 @@ probit_mcmc_cpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
         betasd   = diag(1,length(betamean))
         betat = rmvnorm(1,betamean,betasd)
 
-        if(idx %% 200 == 0) {
+        if(idx %% 1 == 0) {
             print(paste("at iteration",idx,"..."))
 		}
 
         allbetas[idx,] = betat
-	allalphas[idx] = alpha
     }
     
     # remove the burnin
     allbetas = allbetas[(burnin+1):(burnin+niter),]
-    return(list(allbetas,allalphas))
+    return(allbetas)
     
 }
 
 
-data = read.table("data_01.txt",header=TRUE)
+data = read.table("mini_data.txt",header=TRUE)
 p = ncol(data)-1
 y = data$y
 
