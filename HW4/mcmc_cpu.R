@@ -54,12 +54,3 @@ probit_mcmc_cpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
 }
 
 
-data = read.table("data_02.txt",header=TRUE)
-p = ncol(data)-1
-y = data$y
-
-X = data[,2:(p+1)]
-beta_0 = rep(0,p)
-Sigma_0_inv = matrix(0,p,p)
-
-ans = probit_mcmc_cpu(y,X,beta_0,Sigma_0_inv,2000,500)
