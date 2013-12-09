@@ -86,19 +86,22 @@ rtruncnorm_kernel(float *vals, int n,
 	float tmpunif;
 	float z;
 	float psi;
+	float tmparg;    // temporary float for holding values to put in math functions
 
 	int negative = 0;   // flag for whether truncating positive or negative side of normal
 	// we already know that std_lo and std_hi have the same sign
 	if (std_lo < 0 ) {  
 	  negative = 1;
-	  mu_minus   = -std_hi/;
+	  mu_minus   = -std_hi;
 	  hitruncate = -std_lo;
 	} else {
 	  mu_minus   = std_lo;
 	  hitruncate = std_hi;
 	}
 
-	alpha = (mu_minus + __sqrtf(mu_minus^2+4))/2;
+	// alpha = (mu_minus + sqrtf(mu_minus^2+4))/2;
+	tmparg = mu_minus*mu_minus+4;
+	alpha = (mu_minus + sqrtf(tmparg))/2;
 	
 	while((counter < maxtries) && keeptrying) {
 	  counter = counter + 1;
@@ -109,15 +112,22 @@ rtruncnorm_kernel(float *vals, int n,
 
 	  // get psi
 	  if (mu_minus < alpha) {
-	    psi = __expf(-(alpha-z)^2/2);
+	    tmparg = -(alpha-z)*(alpha-z)/2;
+	    psi = __expf(tmparg);
 	  } else {
-	    psi = __expf(-(alpha-z)^2-(mu_minus-alpha)^2/2);
+	    tmparg = -(alpha-z)*(alpha-z)/2 - (mu_minus-alpha)*(mu_minus-alpha)/2;
+	    psi = __expf(tmparg);
 	  }
 
-	  // accept if U < psi
+	  // accept if U < psi, and if z is within the truncation area
 	  tmpunif = curand_uniform(&rng);
-	  if (tmpunif < psi) {
-	    vals[idx] = z;
+	  if ((tmpunif < psi) && (z < hitruncate)) {
+	    if (negative) {
+	      newnum = mu[idx] - z*sigma[idx];
+	    } else {
+	      newnum = mu[idx] + z*sigma[idx];
+	    }
+	    vals[idx] = newnum;
 	    keeptrying = 0;
 	  }
 
