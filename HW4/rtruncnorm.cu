@@ -115,7 +115,7 @@ rtruncnorm_kernel(float *vals, int n,
 	    tmparg = -(alpha-z)*(alpha-z)/2;
 	    psi = __expf(tmparg);
 	  } else {
-	    tmparg = -(alpha-z)*(alpha-z)/2 - (mu_minus-alpha)*(mu_minus-alpha)/2;
+	    tmparg = -(alpha-z)*(alpha-z)/2 + (mu_minus-alpha)*(mu_minus-alpha)/2;
 	    psi = __expf(tmparg);
 	  }
 
