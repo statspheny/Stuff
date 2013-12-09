@@ -52,7 +52,7 @@ probit_mcmc_gpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
         betasd   = diag(1,length(betamean))
         betat = rmvnorm(1,betamean,betasd)
 
-        if(idx %% 1 == 0) {
+        if(idx %% 200 == 0) {
             print(paste("at iteration",idx,"..."))
 		}
 
