@@ -13,10 +13,13 @@ for (i in 1:1) {
   Sigma_0_inv = matrix(0,p,p)
 
   cputimes[[i]] = system.time({
-    ans = probit_mcmc_cpu(y,X,beta_0,Sigma_0_inv,2000,500)
+    cpuans = probit_mcmc_cpu(y,X,beta_0,Sigma_0_inv,2000,500)
   })
 
   gputimes[[i]] = system.time({
-    ans = probit_mcmc_cpu(y,X,beta_0,Sigma_0_inv,2000,500)
+    gpuans = probit_mcmc_cpu(y,X,beta_0,Sigma_0_inv,2000,500)
   })
+
+  name = paste("mcmctimes",i,".RData",sep="")
+  save.image(name)
 }
