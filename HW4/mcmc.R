@@ -18,7 +18,6 @@ probit_mcmc_cpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
 
     p = length(betat)
     allbetas = matrix(0,niter+burnin,p)
-    allalphas = numeric(niter+burnin)
     X = as.matrix(X)
     
     N = length(y)
@@ -46,17 +45,16 @@ probit_mcmc_cpu = function(y, X, beta_0, Sigma_0_inv, niter, burnin) {
 		}
 
         allbetas[idx,] = betat
-	allalphas[idx] = alpha
     }
     
     # remove the burnin
     allbetas = allbetas[(burnin+1):(burnin+niter),]
-    return(list(allbetas,allalphas))
+    return(allbetas)
     
 }
 
 
-data = read.table("data_01.txt",header=TRUE)
+data = read.table("data_02.txt",header=TRUE)
 p = ncol(data)-1
 y = data$y
 
