@@ -6,14 +6,14 @@ library(RCUDA)
 m = loadModule("rtruncnorm.ptx")
 k = m$rtruncnorm_kernel
 
-N = 100L
+N = 10000L
 x = rnorm(N)
 
 n = N
 mu = rep(0,N)
 sigma = rep(1,N)
-lo = rep(0,N)
-hi = rep(1.5,N)
+lo = rep(-Inf,N)
+hi = rep(-10,N)
 mu_len = N
 sigma_len = N
 lo_len = N
@@ -24,11 +24,12 @@ rng_a = 12042013    # RNG seed constant
 rng_b = 13053024    # RNG seed constant
 rng_c = 21031092    # RNG seed constant
 
+gputime = system.time({
 cx = copyToDevice(x)
 .cuda(k, cx, N, mu, sigma, lo, hi, mu_len, sigma_len, lo_len, hi_len, maxtries, nullnum, rng_a, rng_b, rng_c,
-      gridDim = c(40L,1L), blockDim = c(16L,16L))
+      gridDim = c(3907L,1L), blockDim = c(16L,16L))
 i = cx[]
+})
 
 head(i)
 
-summary(dnorm(x[1:100],mu,sigma) - i[1:100])
